@@ -1,5 +1,18 @@
+TARGET := renplat
+SRCS = renplat.c xmalloc.c entity.c
+OBJS = $(SRCS:.c=.o)
+LDFLAGS =
+LDLIBS = -lraylib
 
-name = game
+all: $(TARGET)
 
-all: main.c
-	gcc -o $(name) main.c -lraylib -fsanitize=address -g -O0
+$(TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(OBJS) $(TARGET)
+
+.PHONY: all clean
