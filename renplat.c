@@ -1,5 +1,7 @@
 #include <raylib.h>
+#include "raymath.h"
 #include <stdlib.h>
+#include <math.h>
 #include <stdint.h>
 
 #include "renplat.h"
@@ -7,58 +9,98 @@
 #include "assets.h"
 
 GameState GAME;
+float  SCREEN_WIDTH;
+float  SCREEN_HEIGHT;
 
-static void init_game (void)
+static inline void init_game (void)
 {
 	Texture2D psprite;
 	InitWindow (600, 300, "Ren Platforming Program");
-	SetTargetFPS(RENPLAT_GAMEFPS);
+	SetTargetFPS (RENPLAT_GAMEFPS);
 
+	SCREEN_WIDTH = (float) GetScreenWidth ();
+	SCREEN_HEIGHT = (float) GetScreenHeight ();
 	psprite =  LoadTexture (ASSETS_PLAYER_SPRITE);
 
-	GAME.player = make_entity ("Player", psprite, 100, 0, 0,
-								RENPLAT_PLAYER_WIDTH,
-								RENPLAT_PLAYER_HEIGHT);
+	GAME.player = make_entity (
+			"Player", psprite, 100,
+			(Vector2){.x=DEFAULT_ENTITY_SPEEDX, .y=DEFAULT_ENTITY_SPEEDY},
+			(Vector2){.x=0, .y=0 },
+			RENPLAT_PLAYER_WIDTH,
+			RENPLAT_PLAYER_HEIGHT
+	);
+
+	GAME.camera = (Camera2D){
+		.offset = (Vector2){ SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f},
+		.target = GAME.player->pos,
+		.rotation = 0.0f,
+		.zoom = 1.0f,
+	};
 }
 
-static void cleanup_game (void)
+static inline void cleanup_game (void)
 {
 	CloseWindow ();
 }
 
-static void draw_map(void)
+static void update_player (void)
 {
-/*TODO: Cool if there was a effect to clear background with gamestate color */
-	BeginDrawing ();
-		ClearBackground (BLACK);
-		DrawTextureRec (
-			GAME.player->sprite, get_entity_rect (GAME.player),
-			GAME.player->pos, WHITE
-		);
-	EndDrawing ();
+	if (IsKeyDown (KEY_D))
+		move_entity_relative(GAME.player, (Vector2){GAME.player->speed.x, 0});
+	if (IsKeyDown (KEY_A))
+		move_entity_relative(GAME.player, (Vector2){-GAME.player->speed.x, 0});
+	if (IsKeyDown (KEY_SPACE))
+		move_entity_relative(GAME.player, (Vector2){0, -GAME.player->speed.y});
+}
+
+#define RENPLAT_CAM_MINSPEED  30
+#define RENPLAT_CAM_MINEFFECT 10
+#define RENPLAT_CAM_FRACSPEED 1.9f
+
+void update_cam (Camera2D *cam, Entity *e, float delta)
+{
+	float length;
+	Vector2 diff;
+
+	cam->offset = (Vector2){ SCREEN_WIDTH/2.0f, SCREEN_HEIGHT/2.0f };
+	diff = Vector2Subtract (e->pos, cam->target);
+	length = Vector2Length (diff);
+
+	if (length > RENPLAT_CAM_MINEFFECT)
+	{
+		float speed = fmaxf(RENPLAT_CAM_FRACSPEED*length, RENPLAT_CAM_MINSPEED);
+		cam->target = Vector2Add(
+						cam->target,
+						Vector2Scale(diff, speed*delta/length)
+					);
+	}
 }
 
 int main()
 {
 	init_game ();
-
 	while (!WindowShouldClose ())
 	{
-		draw_map ();
+		SCREEN_WIDTH = (float) GetScreenWidth ();
+		SCREEN_HEIGHT = (float) GetScreenHeight ();
 
-/* XXX
-		if (IsKeyDown(KEY_D))
-			move_entity_relative(GAME.player, (Vector2){PLAYER_SPEED, 0});
-		if (IsKeyDown(KEY_A))
-			move_entity_relative(GAME.player, (Vector2){-PLAYER_SPEED, 0});
-		if (IsKeyDown(KEY_W) && player.state == STATE_ON_SOMETHING) {
-			move_entity_relative(GAME.player, (Vector2){0, -JUMP_POW});
-			player.state = STATE_IN_AIR;
-		}
+		update_cam (&GAME.camera, GAME.player,  (float)GetFrameTime ());
+		update_player ();
 
-		apply_physics();
-*/
+		BeginDrawing ();
+
+			ClearBackground (BLACK);
+
+			BeginMode2D (GAME.camera);
+
+				DrawTextureRec (
+					GAME.player->sprite, get_entity_rect (GAME.player),
+					GAME.player->pos, WHITE
+				);
+
+			EndMode2D ();
+
+		EndDrawing ();
 	}
-
 	cleanup_game ();
 }

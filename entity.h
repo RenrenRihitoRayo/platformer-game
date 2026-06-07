@@ -12,14 +12,15 @@ typedef struct {
 	const char      *name;
 	unsigned int    health;
 	Vector2         pos;
+	Vector2         speed;
 	float           width, height;
 	EntityState     state;
 	Texture2D       sprite;
 } Entity;
 
 Rectangle get_entity_rect (Entity *e);
-Entity* make_entity(const char *name, Texture2D sprite, unsigned int health, int x,
-					int y, float width, float height);
+Entity* make_entity(const char *name, Texture2D sprite, unsigned int health, Vector2 speed,
+					Vector2 pos, float width, float height);
 void move_entity (Entity *e, Vector2 pos);
 void move_entity_relative (Entity *e, Vector2 pos);
 

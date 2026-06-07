@@ -1,21 +1,21 @@
 #include "entity.h"
 #include "renplat.h"
 
-Entity* make_entity(const char *name, Texture2D sprite, unsigned int health, int x,
-					int y, float width, float height)
+Entity* make_entity(const char *name, Texture2D sprite, unsigned int health, Vector2 speed,
+					Vector2 pos, float width, float height)
 {
-	Entity* entity = (Entity *) xmalloc (sizeof(Entity));
-	entity->name = name;
-	entity->health = health;
+	Entity* e = (Entity *) xmalloc (sizeof(Entity));
+	e->name = name;
+	e->health = health;
 
-	entity->pos.x = x;
-	entity->pos.y = y;
-	entity->width = width;
-	entity->height = height;
-	entity->sprite = sprite;
+	e->pos = pos;
+	e->width = width;
+	e->height = height;
+	e->sprite = sprite;
+	e->speed = speed;
 
-	entity->state = STATE_IN_AIR;
-	return entity;
+	e->state = STATE_IN_AIR;
+	return e;
 }
 
 Rectangle get_entity_rect (Entity *e)
@@ -35,11 +35,6 @@ void move_entity (Entity *e, Vector2 pos)
 
 	e->pos.x = pos.x;
 	e->pos.y = pos.y;
-
-	if (e->pos.x < 0 || e->pos.x > (float)GetScreenWidth ())
-		e->pos.x = last_pos.x;
-	if (e->pos.y < 0 || e->pos.y > (float)GetScreenHeight ())
-		e->pos.y = last_pos.y;
 
 /* XXX 
 	for (int i = 0; i < GAME.object_count; i++)

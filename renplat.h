@@ -9,9 +9,8 @@
 #define RENPLAT_PLAYER_WIDTH 10
 #define RENPLAT_PLAYER_HEIGHT 50
 
-#define GRAV 1
-#define JUMP_POW 20
-#define PLAYER_SPEED 5
+#define DEFAULT_ENTITY_SPEEDX  20
+#define DEFAULT_ENTITY_SPEEDY   5
 
 #ifndef inline
  #define inline
@@ -28,10 +27,14 @@ typedef struct
 {
 	GameMap map;
 	Entity *player;
+	Camera2D camera;
 } GameState;
 
 extern void* xmalloc(size_t size);
 
+/* Global variable */
 extern GameState GAME;
+extern float  SCREEN_WIDTH;
+extern float  SCREEN_HEIGHT;
 
 #endif

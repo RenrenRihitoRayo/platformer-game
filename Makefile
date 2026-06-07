@@ -1,8 +1,10 @@
 TARGET := renplat
 SRCS = renplat.c xmalloc.c entity.c
 OBJS = $(SRCS:.c=.o)
+
+CFLAGS = -Wall -g -O2 -Wpedantic
 LDFLAGS =
-LDLIBS = -lraylib
+LDLIBS = -lraylib -lm
 
 all: $(TARGET)
 
