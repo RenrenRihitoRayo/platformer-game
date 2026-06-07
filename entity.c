@@ -1,20 +1,30 @@
 #include "entity.h"
 #include "renplat.h"
+#include "raymath.h"
 
-Entity* make_entity(const char *name, Texture2D sprite, unsigned int health, Vector2 speed,
-					Vector2 pos, float width, float height)
+// TODO: Implement EntityTable so we can apply physic to all
+//       Entity
+
+Entity* make_entity(const char *name, Texture2D sprite, unsigned int max_health,
+					float speed, Vector2 pos, float width, float height)
 {
 	Entity* e = (Entity *) xmalloc (sizeof(Entity));
 	e->name = name;
-	e->health = health;
+	e->max_health = max_health;
+	e->health = e->max_health;
 
 	e->pos = pos;
+	e->speed = speed;
 	e->width = width;
 	e->height = height;
 	e->sprite = sprite;
-	e->speed = speed;
 
-	e->state = STATE_IN_AIR;
+	e->velocity = (Vector2){
+		.x = 0,
+		.y = 0,
+	};
+
+	e->state |= STATE_AIR;
 	return e;
 }
 
@@ -28,31 +38,38 @@ Rectangle get_entity_rect (Entity *e)
 	};
 }
 
-void move_entity (Entity *e, Vector2 pos)
+void move_entity (Entity *e, Vector2 direction, float delta)
 {
-	Rectangle rect = get_entity_rect (e);
 	Vector2 last_pos = e->pos;
-
-	e->pos.x = pos.x;
-	e->pos.y = pos.y;
-
-/* XXX 
-	for (int i = 0; i < GAME.object_count; i++)
+	float length = sqrtf ( (direction.x * direction.x) + (direction.y * direction.y));
+	if (length >1.0f)
 	{
-		if (CheckCollisionRecs (rect, GAME.objects[i].rect))
-		{
-			e->pos.x = last_pos.x;
-			e->pos.y = last_pos.y;
-		}
+		direction.x /= length;
+		direction.y /= length;
 	}
-*/
-}
 
-void move_entity_relative (Entity *e, Vector2 pos)
-{
-	Vector2 new_pos = (Vector2){
-		.x = (e->pos.x + pos.x),
-		.y = (e->pos.y + pos.y),
-	};
-	move_entity (e, new_pos);
+	if (direction.x != 0)
+		e->velocity.x = direction.x * e->speed;
+	else
+		e->velocity.x = Lerp (e->velocity.x, 0.0f, ENTITY_FRICTION * delta); // Smooth brake;
+
+	if (direction.y != 0)
+		e->velocity.y = direction.y * e->speed;
+	else
+		e->velocity.y = Lerp (e->velocity.y, 0.0f, ENTITY_FRICTION * delta); // Smooth brake;
+
+	e->pos.x += e->velocity.x * delta;
+	e->pos.y += e->velocity.y * delta;
+
+/* XXX - Should add collision logic here */
+/* XXX - Should add entity state logic here */
+
+	if (fabsf (e->velocity.x) > 0.1f || fabsf (e->velocity.y) > 1.0f) {
+		e->state &= ~STATE_IDLE;
+		e->state |= STATE_WALKING;
+	}
+	else {
+		e->state |= STATE_IDLE;
+		e->state &= ~STATE_WALKING;
+	}
 }

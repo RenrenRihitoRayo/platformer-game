@@ -9,8 +9,7 @@
 #define RENPLAT_PLAYER_WIDTH 10
 #define RENPLAT_PLAYER_HEIGHT 50
 
-#define DEFAULT_ENTITY_SPEEDX  20
-#define DEFAULT_ENTITY_SPEEDY   5
+#define PLAYER_SPEED   DEFAULT_ENTITY_SPEED
 
 #ifndef inline
  #define inline
@@ -25,8 +24,8 @@ typedef struct
 
 typedef struct
 {
-	GameMap map;
-	Entity *player;
+	GameMap  map;
+	Entity   *player;
 	Camera2D camera;
 } GameState;
 

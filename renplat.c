@@ -24,14 +24,14 @@ static inline void init_game (void)
 
 	GAME.player = make_entity (
 			"Player", psprite, 100,
-			(Vector2){.x=DEFAULT_ENTITY_SPEEDX, .y=DEFAULT_ENTITY_SPEEDY},
+			PLAYER_SPEED,
 			(Vector2){.x=0, .y=0 },
 			RENPLAT_PLAYER_WIDTH,
 			RENPLAT_PLAYER_HEIGHT
 	);
 
 	GAME.camera = (Camera2D){
-		.offset = (Vector2){ SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f},
+		.offset = (Vector2){ SCREEN_WIDTH/2.0f, SCREEN_HEIGHT/2.0f},
 		.target = GAME.player->pos,
 		.rotation = 0.0f,
 		.zoom = 1.0f,
@@ -43,19 +43,22 @@ static inline void cleanup_game (void)
 	CloseWindow ();
 }
 
-static void update_player (void)
+static void update_player (float delta)
 {
-	if (IsKeyDown (KEY_D))
-		move_entity_relative(GAME.player, (Vector2){GAME.player->speed.x, 0});
-	if (IsKeyDown (KEY_A))
-		move_entity_relative(GAME.player, (Vector2){-GAME.player->speed.x, 0});
+	if (IsKeyDown (KEY_D) || IsKeyDown (KEY_RIGHT))
+		move_entity(GAME.player, (Vector2){1, 0}, delta);
+
+	if (IsKeyDown (KEY_A) || IsKeyDown (KEY_LEFT))
+		move_entity(GAME.player, (Vector2){-1, 0}, delta);
+
 	if (IsKeyDown (KEY_SPACE))
-		move_entity_relative(GAME.player, (Vector2){0, -GAME.player->speed.y});
+		move_entity(GAME.player, (Vector2){0, -1}, delta);
 }
 
-#define RENPLAT_CAM_MINSPEED  30
-#define RENPLAT_CAM_MINEFFECT 10
-#define RENPLAT_CAM_FRACSPEED 1.9f
+
+#define RENPLAT_CAM_MIN_SPEED  30
+#define RENPLAT_CAM_MIN_EFFECT 10
+#define RENPLAT_CAM_FRACSPEED 0.8f
 
 void update_cam (Camera2D *cam, Entity *e, float delta)
 {
@@ -66,26 +69,29 @@ void update_cam (Camera2D *cam, Entity *e, float delta)
 	diff = Vector2Subtract (e->pos, cam->target);
 	length = Vector2Length (diff);
 
-	if (length > RENPLAT_CAM_MINEFFECT)
+	if (length > RENPLAT_CAM_MIN_EFFECT)
 	{
-		float speed = fmaxf(RENPLAT_CAM_FRACSPEED*length, RENPLAT_CAM_MINSPEED);
+		float speed = fmaxf(RENPLAT_CAM_FRACSPEED*length, RENPLAT_CAM_MIN_SPEED);
 		cam->target = Vector2Add(
 						cam->target,
 						Vector2Scale(diff, speed*delta/length)
-					);
+		);
 	}
 }
 
 int main()
 {
+	float dt;
+
 	init_game ();
 	while (!WindowShouldClose ())
 	{
+		dt =  (float) GetFrameTime ();
 		SCREEN_WIDTH = (float) GetScreenWidth ();
 		SCREEN_HEIGHT = (float) GetScreenHeight ();
 
-		update_cam (&GAME.camera, GAME.player,  (float)GetFrameTime ());
-		update_player ();
+		update_cam (&GAME.camera, GAME.player,  dt);
+		update_player (dt);
 
 		BeginDrawing ();
 
@@ -103,4 +109,5 @@ int main()
 		EndDrawing ();
 	}
 	cleanup_game ();
+	return 0;
 }
