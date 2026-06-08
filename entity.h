@@ -2,6 +2,7 @@
 #define _ENTITY_H
 
 #include <raylib.h>
+#include "render.h"
 
 #define DEFAULT_ENTITY_SPEED  120.0f
 #define ENTITY_FRICTION 1.0f
@@ -23,12 +24,14 @@ typedef struct {
 	float         speed;
 	float         width, height;
 	EntityState   state;
-	Texture2D     sprite;
+	Looks         look;
 } Entity;
 
 Rectangle get_entity_rect (Entity *e);
-Entity* make_entity(const char *name, Texture2D sprite, unsigned int max_health,
+Entity* make_entity (const char *name, Looks look, unsigned int max_health,
 					float speed, Vector2 pos, float width, float height);
 void move_entity (Entity *e, Vector2 direction, float delta);
+
+void draw_entity (Entity *e);
 
 #endif

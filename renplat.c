@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "renplat.h"
+#include "extern.h"
 #include "entity.h"
 #include "assets.h"
 
@@ -23,8 +24,9 @@ static inline void init_game (void)
 	psprite =  LoadTexture (ASSETS_PLAYER_SPRITE);
 
 	GAME.player = make_entity (
-			"Player", psprite, 100,
-			PLAYER_SPEED,
+			"Player",
+			(Looks){ .flags = LOOK_SPRITE, .as.sprite = psprite, .tint = WHITE },
+			100, PLAYER_SPEED,
 			(Vector2){.x=0, .y=0 },
 			RENPLAT_PLAYER_WIDTH,
 			RENPLAT_PLAYER_HEIGHT
@@ -99,10 +101,7 @@ int main()
 
 			BeginMode2D (GAME.camera);
 
-				DrawTextureRec (
-					GAME.player->sprite, get_entity_rect (GAME.player),
-					GAME.player->pos, WHITE
-				);
+				draw_entity (GAME.player);
 
 			EndMode2D ();
 

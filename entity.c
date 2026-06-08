@@ -1,11 +1,12 @@
 #include "entity.h"
 #include "renplat.h"
+#include "extern.h"
 #include "raymath.h"
 
 // TODO: Implement EntityTable so we can apply physic to all
 //       Entity
 
-Entity* make_entity(const char *name, Texture2D sprite, unsigned int max_health,
+Entity* make_entity (const char *name, Looks look, unsigned int max_health,
 					float speed, Vector2 pos, float width, float height)
 {
 	Entity* e = (Entity *) xmalloc (sizeof(Entity));
@@ -17,7 +18,7 @@ Entity* make_entity(const char *name, Texture2D sprite, unsigned int max_health,
 	e->speed = speed;
 	e->width = width;
 	e->height = height;
-	e->sprite = sprite;
+	e->look = look;
 
 	e->velocity = (Vector2){
 		.x = 0,
@@ -36,6 +37,26 @@ Rectangle get_entity_rect (Entity *e)
 		.width = e->width,
 		.height = e->height,
 	};
+}
+
+void draw_entity (Entity *e)
+{
+	if ((e->look.flags & LOOK_SPRITE) && !(e->look.flags & LOOK_COLOR)
+		&& IsTextureValid (e->look.as.sprite))
+	{
+		DrawTextureRec (e->look.as.sprite, get_entity_rect (e), e->pos, e->look.tint);
+	}
+	else  // Draw color
+	{
+		Color color;
+
+		if (!(e->look.flags & LOOK_COLOR))  // Failed sprite texture load fallback
+			color = WHITE;
+		else
+			color = e->look.as.color;
+
+		DrawRectangle (e->pos.x, e->pos.y, e->width, e->height, color);
+	}
 }
 
 void move_entity (Entity *e, Vector2 direction, float delta)

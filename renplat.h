@@ -15,8 +15,6 @@
  #define inline
 #endif
 
-typedef unsigned char   byte;
-
 typedef struct
 {
 	/* Make object */
@@ -28,8 +26,6 @@ typedef struct
 	Entity   *player;
 	Camera2D camera;
 } GameState;
-
-extern void* xmalloc(size_t size);
 
 /* Global variable */
 extern GameState GAME;
